@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en" ng-app="easyModel">
+<head>
+  <meta charset="utf-8">
+  <title>Fast Bindings</title>
+  <link rel="stylesheet" href="css/app.css"/>
+    <script src="lib/angular/angular.js"></script>
+  <script src="lib/angular/angular-route.js"></script>
+  <script src="app.js"></script>
+<script src="datapackage/Model.js"></script>
+<script src="directives/mValidate.js"></script>
+<script src="models/Reader.js"></script>
+<script src="models/Library.js"></script>
+<script src="models/Address.js"></script>
+
+  <script src="controllers/demo-controller.js"></script>
+</head>
+<body>
+  <div ng-controller="DemoController" data-ng-form="aForm" data-m-form>
+    <input data-ng-model="models.book.name" data-m-validate/>
+      <div data-m-validation-message="{$error:['required','optional'], $warning:['optional1']}"></div>
+  </div>
+</body>
+</html>
