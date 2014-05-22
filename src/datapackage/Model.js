@@ -59,7 +59,7 @@ angular.module('easyModel.data', []).factory('Model', ['$injector', function($in
     }
 
     Model.prototype = {
-        getValidation : function(name) {
+        getValidation : function(name, silent) {
             var validators = this.validators[name],
                 validation = this.validation,
                 i,ln;
@@ -71,10 +71,13 @@ angular.module('easyModel.data', []).factory('Model', ['$injector', function($in
                     for(i = 0, ln = validators.length; i < ln; i++){
                         validation.push(validators[i].validate(this.entity[name]));
                     }
+                }else
+                if(typeof validators === 'object') {
+                    validation.push(validators.validate(this.entity[name]));
                 }
             }
 
-            if(this.hasOwnProperty("$validations")) {
+            if(!silent && this.hasOwnProperty("$validations")) {
                 this.$validations = validation;
             }
 

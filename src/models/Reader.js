@@ -14,7 +14,7 @@ angular.module('easyModel.models').
             validators: {
                 name: [{
                     type: "required",
-                    message: "This field is required",
+                    message: "Name is required",
                     isValid: true,
                     isError: true,
                     validate: function(value) {
@@ -44,7 +44,22 @@ angular.module('easyModel.models').
                         this.isValid = false;
                         return this;
                     }
-                }]
+                }],
+                address: {
+                    type: "required",
+                    message: "Street is required",
+                    isValid: true,
+                    isError: true,
+                    validate: function(value) {
+                        this.isValid = true;
+
+                        if(!value.street) {
+                            this.isValid = false;
+                        }
+
+                        return this;
+                    }
+                }
             }
         });
     }

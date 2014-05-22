@@ -5,7 +5,7 @@ angular.module('easyModel.directives', []).
     directive('mValidate', ['mValidateInfo', function(validateInfo) {
        return {
           restrict: "A",
-          require: 'ngModel',
+          require: '^ngModel',
           controller: ['$scope', '$element', '$attrs', '$parse', function($scope, $element, $attr, $parse) {
 
           }],
@@ -52,38 +52,48 @@ angular.module('easyModel.directives', []).
                       ),
                       $validations;
 
-                  linkForNonInput();
+                  // Use only features defined in Angular's jqLite
+                  var domEl = element[0];
+                  var nodeName = domEl.nodeName;
+                  var isInput = nodeName == 'INPUT' || nodeName == 'SELECT' || nodeName == 'TEXTAREA';
 
-                  function linkForNonInput() {
-                      var record = info.getRecord();
+                  isInput ? linkForInput() : linkForNonInput();
 
+                  var record = info.getRecord();
+
+                  if(!record.hasOwnProperty("$validations")) {
                       Object.defineProperty(record, '$validations', {
-                          get: function() { return $validations},
                           set: function(value) {
                               $validations = value;
-
-                              valErrsChanged(value);
-                              $scope.apply();
+                              scope.$digest();
                           }
                       });
+                  }
 
-                     scope.$watch(info.getValErrs, valErrsChanged, true);
+                  function valErrsChanged(newValue) {
+                      var validations = newValue ? newValue : null;
 
-                      function valErrsChanged(newValue) {
-                          var validations = newValue ? newValue : null;
+                      if(Array.isArray(validations)) {
+                          validations.forEach(function(v){
+                              if(v.isError) {
+                                  ngModelCtrl.$setValidity(v.type, v.isValid);
+                              }else {
+                                  ngModelCtrl.$setWarning(v.type, v.isValid);
+                              }
 
-                          if(Array.isArray(validations)) {
-                              validations.forEach(function(v){
-                                  if(v.isError) {
-                                      ngModelCtrl.$setValidity(v.type, v.isValid);
-                                  }else {
-                                      ngModelCtrl.$setWarning(v.type, v.isValid);
-                                  }
-
-                                  ngModelCtrl.$validators[v.type] = v;
-                              })
-                          }
+                              ngModelCtrl.$validators[v.type] = v;
+                          })
                       }
+                  }
+
+                  function linkForNonInput() {
+                     //scope.$watch(info.getValErrs, valErrsChanged, true);
+                  }
+
+                  function linkForInput() {
+                      ngModelCtrl.$viewChangeListeners.push(function(){
+                          valErrsChanged(info.getValErrs());
+                      });
                   }
               }
           }
@@ -108,7 +118,7 @@ angular.module('easyModel.directives', []).
                 var record = this.getRecord();
 
                 if (record) {
-                    return record.getValidation(this.propertyPath);
+                    return record.getValidation(this.propertyPath,true);
                 }
 
                 return null;
