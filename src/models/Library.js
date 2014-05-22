@@ -24,7 +24,8 @@ angular.module('easyModel.models').
 
                             return this;
                         }
-                    }]
+                    }],
+                    readers:{}
                 }
             });
         }

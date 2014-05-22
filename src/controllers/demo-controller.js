@@ -12,7 +12,11 @@ angular.module('easyModel.demoController', []).
         id   : 'ABCD12346',
         age  : 17,
         phone: '666-555-5555',
-        name: "Linda"
+        name: "Linda",
+        address: {
+            city: 'London',
+            street: 'Backers'
+        }
     })
 
     $scope.models.library = new Library({

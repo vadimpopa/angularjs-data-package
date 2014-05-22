@@ -49,12 +49,25 @@ angular.module('easyModel.directives', []).
                       scope,
                       attrs.ngModel,
                       attrs.mValidate
-                  );
+                      ),
+                      $validations;
 
                   linkForNonInput();
 
                   function linkForNonInput() {
-                      scope.$watch(info.getValErrs, valErrsChanged, true);
+                      var record = info.getRecord();
+
+                      Object.defineProperty(record, '$validations', {
+                          get: function() { return $validations},
+                          set: function(value) {
+                              $validations = value;
+
+                              valErrsChanged(value);
+                              $scope.apply();
+                          }
+                      });
+
+                     scope.$watch(info.getValErrs, valErrsChanged, true);
 
                       function valErrsChanged(newValue) {
                           var validations = newValue ? newValue : null;

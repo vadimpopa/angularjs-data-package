@@ -7,14 +7,18 @@ angular.module('easyModel.data', []).factory('Model', ['$injector', function($in
         var field,
             data = configs.data,
             entityConstructor,
-            collection,
-            fields = configs.fields,
+            fields,
             i,ln;
 
         this.entityName = entityName;
         this.entity = entity;
 
         this.validation = [];
+
+        if(configs.fields) {
+            fields = configs.fields;
+            this.fields = fields;
+        }
 
         for(i = 0, ln = fields.length; i < ln; i++) {
             field = fields[i];
@@ -70,7 +74,34 @@ angular.module('easyModel.data', []).factory('Model', ['$injector', function($in
                 }
             }
 
+            if(this.hasOwnProperty("$validations")) {
+                this.$validations = validation;
+            }
+
             return validation;
+        },
+        validate: function() {
+            var fields = this.fields,
+                entity = this.entity,
+                field,
+                i,ln;
+
+            for (i = 0, ln = fields.length; i < ln; ++i) {
+                field = fields[i];
+
+                if(field.reference) {
+                    if(field.unique) {
+                        entity[field.name]._record.validate();
+                    }else
+                    if(field.isManyToOne){
+                        entity[field.name].forEach(function(item){
+                            item._record.validate();
+                        });
+                    }
+                }else{
+                    this.getValidation(field.name);
+                }
+            }
         }
     }
 
