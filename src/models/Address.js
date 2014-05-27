@@ -9,7 +9,7 @@ angular.module('easyModel.models').
                     {name: "house"}
                 ],
                 validators: {
-                    name: [{
+                    street: [{
                         type: "required",
                         message: "This field is required",
                         isValid: true,

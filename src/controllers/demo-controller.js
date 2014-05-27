@@ -49,4 +49,10 @@ angular.module('easyModel.demoController', []).
         }]
     });
 
+        $scope.onMakeStreetRequired = function() {
+            $scope.models.book.address.street = "";
+
+            $scope.models.book._record.getValidation("address");
+        }
+
   }]);

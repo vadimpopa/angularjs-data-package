@@ -16,11 +16,22 @@
 </head>
 <body>
   <div ng-controller="DemoController" data-ng-form="aForm" data-m-form>
-    <input data-ng-model="models.book.name" data-m-validate/>
-      <div data-m-validation-message="{$error:['required','optional'], $warning:['optional1']}"></div>
 
-    <div data-ng-model="models.book.address" data-m-validate>{{models.book.address.street}}</div>
-    <div data-m-validation-message="{$error:['required']}"></div>
+
+     <span>Book name:</span>
+    <input data-ng-model="models.book.name" data-m-validate/>
+    <div data-m-validation-message="['required','optional','optional1']"></div>
+      </br>
+     <div>Duplicated messages for book name input</div>
+    <div data-m-validation-message="['required','optional']"></div>
+
+      </br>
+      <div>Street: {{models.book.address.street}}</div>
+
+      <div data-ng-model="models.book.address.street" data-m-validate data-name="address"></div>
+      <div data-m-validation-message="['streetrequired']"></div>
+
+    <button data-ng-click="onMakeStreetRequired()">Empty the street</button>
 
   </div>
 </body>

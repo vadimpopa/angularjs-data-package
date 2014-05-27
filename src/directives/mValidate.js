@@ -9,93 +9,93 @@ angular.module('easyModel.directives', []).
           controller: ['$scope', '$element', '$attrs', '$parse', function($scope, $element, $attr, $parse) {
 
           }],
-          link: {
-              pre: function preLink(scope, element, attrs, ngModelCtrl) {
-                  var warningCount = 0,
-                      $warning = ngModelCtrl.$warning = {},
-                      parentForm = element.inheritedData('$formController');
+          compile: function compile(element, attrs){
+              var domEl = element[0],
+                  nodeName = domEl.nodeName,
+                  isInput = nodeName == 'INPUT' || nodeName == 'SELECT' || nodeName == 'TEXTAREA';
 
-                  ngModelCtrl.$setWarning = setWarning;
-                  ngModelCtrl.$hasWarns = false;
-                  ngModelCtrl.$validators = {};
+              return {
+                  pre: function preLink(scope, element, attrs, ngModelCtrl) {
+                      var parentForm = element.inheritedData('$formController'),
+                          warningCount = 0,
+                          $warning;
 
-                  function setWarning(validationWarningrKey, isValid) {
-                      // Purposeful use of ! here to cast isValid to boolean in case it is undefined
-                      // jshint -W018
-                      if ($warning[validationWarningrKey] === !isValid) return;
-                      // jshint +W018
+                      $warning = ngModelCtrl.$warning = {};
 
-                      if (isValid) {
-                          if ($warning[validationWarningrKey]) warningCount--;
-                          if (!warningCount) {
-                              //toggleValidCss(true);
-                              this.$hasWarns = false;
-                          }
-                      } else {
-                          //toggleValidCss(false);
-                          this.$hasWarns = true;
-                          warningCount++;
-                      }
+                      ngModelCtrl.$setWarning = setWarning;
+                      ngModelCtrl.$hasWarns = false;
+                      ngModelCtrl.$validators = {};
 
-                      $warning[validationWarningrKey] = !isValid;
-                      //toggleValidCss(isValid, validationErrorKey);
+                      function setWarning(validationWarningrKey, isValid) {
+                          // Purposeful use of ! here to cast isValid to boolean in case it is undefined
+                          // jshint -W018
+                          if ($warning[validationWarningrKey] === !isValid) return;
+                          // jshint +W018
 
-                      parentForm.$setWarning(validationWarningrKey, isValid, this);
-                  }
-              },
-              post: function postLink(scope, element, attrs, ngModelCtrl) {
-                  //Get validation context for bound element and model property
-                  var info = validateInfo.create(
-                      scope,
-                      attrs.ngModel,
-                      attrs.mValidate
-                      ),
-                      $validations;
-
-                  // Use only features defined in Angular's jqLite
-                  var domEl = element[0];
-                  var nodeName = domEl.nodeName;
-                  var isInput = nodeName == 'INPUT' || nodeName == 'SELECT' || nodeName == 'TEXTAREA';
-
-                  isInput ? linkForInput() : linkForNonInput();
-
-                  var record = info.getRecord();
-
-                  if(!record.hasOwnProperty("$validations")) {
-                      Object.defineProperty(record, '$validations', {
-                          set: function(value) {
-                              $validations = value;
-                              scope.$digest();
-                          }
-                      });
-                  }
-
-                  function valErrsChanged(newValue) {
-                      var validations = newValue ? newValue : null;
-
-                      if(Array.isArray(validations)) {
-                          validations.forEach(function(v){
-                              if(v.isError) {
-                                  ngModelCtrl.$setValidity(v.type, v.isValid);
-                              }else {
-                                  ngModelCtrl.$setWarning(v.type, v.isValid);
+                          if (isValid) {
+                              if ($warning[validationWarningrKey]) warningCount--;
+                              if (!warningCount) {
+                                  //toggleValidCss(true);
+                                  this.$hasWarns = false;
                               }
+                          } else {
+                              //toggleValidCss(false);
+                              this.$hasWarns = true;
+                              warningCount++;
+                          }
 
-                              ngModelCtrl.$validators[v.type] = v;
-                          })
+                          $warning[validationWarningrKey] = !isValid;
+                          //toggleValidCss(isValid, validationErrorKey);
+
+                          parentForm.$setWarning(validationWarningrKey, isValid, this);
                       }
-                  }
+                  },
+                  post: function postLink(scope, element, attrs, ngModelCtrl) {
+                      //Get validation context for bound element and model property
+                      var info = validateInfo.create(
+                              scope,
+                              attrs.ngModel,
+                              attrs.mValidate
+                          ),
+                          record = info.getRecord();
 
-                  function linkForNonInput() {
-                     //scope.$watch(info.getValErrs, valErrsChanged, true);
-                  }
+                      if(isInput) {
+                          linkForInput();
+                      }
 
-                  function linkForInput() {
-                      ngModelCtrl.$viewChangeListeners.push(function(){
-                          valErrsChanged(info.getValErrs());
+                      function valErrsChanged(newValue) {
+                          var validations = newValue ? newValue : null;
+
+                          if(Array.isArray(validations)) {
+                              validations.forEach(function(v){
+                                  if(v.isError) {
+                                      ngModelCtrl.$setValidity(v.type, v.isValid);
+                                  }else {
+                                      ngModelCtrl.$setWarning(v.type, v.isValid);
+                                  }
+
+                                  ngModelCtrl.$validators[v.type] = v;
+                              })
+                          }
+                      }
+
+
+                      record.validationChangeListeners.push(function(validations){
+                          valErrsChanged(validations);
+                          if (scope.$root.$$phase != '$apply' && scope.$root.$$phase != '$digest') {
+                              scope.$apply();
+                          }
                       });
+
+
+                      function linkForInput() {
+                          ngModelCtrl.$viewChangeListeners.push(function(){
+                              valErrsChanged(info.getValErrs());
+                          });
+                      }
                   }
               }
+
           }
       }
     }]).
@@ -392,9 +392,6 @@ angular.module('easyModel.directives', []).
                         scope.validations = [];
                         scope.iconClass = attrs.iconClass;
 
-                        scope.warnings = [];
-                        scope.errors = [];
-
                         if (!formCtrl) {
                             formCtrl = element.parent().controller('form');
                         }
@@ -405,8 +402,7 @@ angular.module('easyModel.directives', []).
 
                         var pScope = scope.$parent,
                             formName = formCtrl.$name,
-                            validators = attrs.mValidationMessage,
-                            type;
+                            validators = attrs.mValidationMessage;
 
                         if (!formName) {
                             angular.forEach(pScope, function (value, key) {
@@ -423,44 +419,40 @@ angular.module('easyModel.directives', []).
                         if(validators) {
                             validators = scope.$eval(validators);
 
-                            for(type in validators) {
-                                if (!formCtrl.hasOwnProperty(type)) {
-                                    throw new Error('The form controller is not one extended. Warnings not supported.');
-                                }
-
-                                pScope.$watch(formName + '.' + type, proceedErrors.bind(scope, validators[type], scope[type === "$error" ? 'errors':'warnings']), true);
-
-                            }
+                            pScope.$watch('[' + formName + '.' + '$error,' + formName + '.' + '$warning]', proceedErrors.bind(scope, validators), true);
                         }
 
-                        function proceedErrors(validators, scopeCollection, validations) {
-                            var validation,
-                                validator,
-                                ctrl,
-                                i,ln;
+                        function proceedErrors(validators, formValidations) {
+                            var i, ln,
+                                validations = this.validations;
 
-                            scopeCollection.length = 0;
+                            validations.length = 0;
 
                             for(i = 0, ln = validators.length; i < ln; i++) {
-                                if(validations.hasOwnProperty(validators[i])) {
-                                    validation = validations[validators[i]];
 
-                                    if(validation) {
-                                        ctrl = validation[0];
+                                formValidations.forEach(function(validationsCollection){
+                                    var validation,
+                                        validator,
+                                        ctrl;
 
-                                        validator = ctrl.$validators[validators[i]];
+                                    if(validationsCollection.hasOwnProperty(validators[i])) {
+                                        validation = validationsCollection[validators[i]];
 
-                                        if (validator.message) {
-                                            scopeCollection.push({
-                                                message : validator.message,
-                                                isError : validator.isError
-                                            });
+                                        if(validation) {
+                                            ctrl = validation[0];
+
+                                            validator = ctrl.$validators[validators[i]];
+
+                                            if (validator.message) {
+                                                validations.push({
+                                                    message : validator.message,
+                                                    isError : validator.isError
+                                                });
+                                            }
                                         }
                                     }
-                                }
+                                });
                             }
-
-                            this.validations = this.errors.concat(this.warnings);
                         };
                     }
                 }

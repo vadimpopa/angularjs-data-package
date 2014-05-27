@@ -15,6 +15,8 @@ angular.module('easyModel.data', []).factory('Model', ['$injector', function($in
 
         this.validation = [];
 
+        this.validationChangeListeners = [];
+
         if(configs.fields) {
             fields = configs.fields;
             this.fields = fields;
@@ -77,8 +79,10 @@ angular.module('easyModel.data', []).factory('Model', ['$injector', function($in
                 }
             }
 
-            if(!silent && this.hasOwnProperty("$validations")) {
-                this.$validations = validation;
+            if(!silent) {
+                this.validationChangeListeners. forEach(function(listener) {
+                    listener(validation);
+                });
             }
 
             return validation;

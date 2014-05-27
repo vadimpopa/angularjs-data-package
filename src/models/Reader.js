@@ -46,7 +46,7 @@ angular.module('easyModel.models').
                     }
                 }],
                 address: {
-                    type: "required",
+                    type: "streetrequired",
                     message: "Street is required",
                     isValid: true,
                     isError: true,
