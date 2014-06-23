@@ -1,37 +1,45 @@
 <!doctype html>
 <html lang="en" ng-app="easyModel">
 <head>
-  <meta charset="utf-8">
-  <title>Fast Bindings</title>
-  <link rel="stylesheet" href="css/app.css"/>
+    <meta charset="utf-8">
+
+    <link rel="stylesheet" href="css/app.css"/>
+
     <script src="lib/angular/angular.js"></script>
-  <script src="lib/angular/angular-route.js"></script>
-  <script src="app.js"></script>
-<script src="datapackage/Model.js"></script>
-<script src="directives/mValidate.js"></script>
-<script src="models/Reader.js"></script>
-<script src="models/Library.js"></script>
-<script src="models/Address.js"></script>
-<script src="controllers/demo-controller.js"></script>
+    <script src="lib/angular/angular-route.js"></script>
+    <script src="app.js"></script>
+
+    <script src="datapackage/Model.js"></script>
+    <script src="directives/mValidate.js"></script>
+    <script src="directives/mForm.js"></script>
+    <script src="directives/mMessages.js"></script>
+    <script src="models/Reader.js"></script>
+    <script src="models/Library.js"></script>
+    <script src="models/Address.js"></script>
+    <script src="controllers/demo-controller.js"></script>
+
 </head>
+
 <body>
-  <div ng-controller="DemoController" data-ng-form="aForm" data-m-form>
+    <div ng-controller="DemoController" data-ng-form="aForm" data-m-form>
 
+        <span>Book name:</span>
+        <input data-ng-model="models.book.name" data-m-validate/>
+        <div data-m-messages="['required','optional','optional1']"></div>
 
-     <span>Book name:</span>
-    <input data-ng-model="models.book.name" data-m-validate/>
-    <div data-m-validation-message="['required','optional','optional1']"></div>
-      </br>
-     <div>Duplicated messages for book name input</div>
-    <div data-m-validation-message="['required','optional']"></div>
+        </br>
 
-      </br>
-      <div>Street: {{models.book.address.street}}</div>
+        <div>Duplicated messages for book name input</div>
+        <div data-m-messages="['required','optional']"></div>
 
-      <div data-ng-model="models.book.address.street" data-m-validate data-name="address"></div>
-      <div data-m-validation-message="['streetrequired']"></div>
+        </br>
 
-    <button data-ng-click="onMakeStreetRequired()">Empty the street</button>
+        <div>Street: {{models.book.address.street}}</div>
+
+        <div data-ng-model="models.book.address.street" data-m-validate data-name="address"></div>
+        <div data-m-messages="['streetrequired']"></div>
+
+        <button data-ng-click="onMakeStreetRequired()">Empty the street</button>
 
   </div>
 </body>

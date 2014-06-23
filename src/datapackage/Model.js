@@ -80,7 +80,7 @@ angular.module('easyModel.data', []).factory('Model', ['$injector', function($in
             }
 
             if(!silent) {
-                this.validationChangeListeners. forEach(function(listener) {
+                this.validationChangeListeners.forEach(function(listener) {
                     listener(validation);
                 });
             }

@@ -1,6 +1,3 @@
-'use strict';
-
-
 angular.module('easyModel.directives', []).
     directive('mValidate', ['mValidateInfo', function(validateInfo) {
        return {
@@ -26,14 +23,14 @@ angular.module('easyModel.directives', []).
                       ngModelCtrl.$hasWarns = false;
                       ngModelCtrl.$validators = {};
 
-                      function setWarning(validationWarningrKey, isValid) {
+                      function setWarning(validationWarningKey, isValid) {
                           // Purposeful use of ! here to cast isValid to boolean in case it is undefined
                           // jshint -W018
-                          if ($warning[validationWarningrKey] === !isValid) return;
+                          if ($warning[validationWarningKey] === !isValid) return;
                           // jshint +W018
 
                           if (isValid) {
-                              if ($warning[validationWarningrKey]) warningCount--;
+                              if ($warning[validationWarningKey]) warningCount--;
                               if (!warningCount) {
                                   //toggleValidCss(true);
                                   this.$hasWarns = false;
@@ -44,10 +41,10 @@ angular.module('easyModel.directives', []).
                               warningCount++;
                           }
 
-                          $warning[validationWarningrKey] = !isValid;
+                          $warning[validationWarningKey] = !isValid;
                           //toggleValidCss(isValid, validationErrorKey);
 
-                          parentForm.$setWarning(validationWarningrKey, isValid, this);
+                          parentForm.$setWarning(validationWarningKey, isValid, this);
                       }
                   },
                   post: function postLink(scope, element, attrs, ngModelCtrl) {
@@ -219,126 +216,7 @@ angular.module('easyModel.directives', []).
                 return new Info(scope, modelPath, validationPath);
             }
         }
-    }).directive('mForm', ['$animate',
-        function ($animate) {
-            return {
-                restrict: 'A',
-                require: 'form',
-                link: {
-                    pre: function preLink(scope, element, attrs, formCtrl) {
-                        var warningCount = 0;
-                        var warnings = formCtrl.$warning = {};
-                        formCtrl.$hasWarns = false;
-
-                        var WARN_CLASS = 'ng-warn';
-
-                        function toggleWarnCss(isValid, warnKey) {
-                            warnKey = warnKey ? '-' + snake_case(warnKey, '-') : '';
-
-                            if (isValid) {
-                                $animate.removeClass(element, WARN_CLASS + warnKey);
-                            } else {
-                                $animate.addClass(element, WARN_CLASS + warnKey);
-                            }
-                        }
-
-                        var SNAKE_CASE_REGEXP = /[A-Z]/g;
-
-                        function snake_case(name, separator) {
-                            separator = separator || '_';
-
-                            return name.replace(SNAKE_CASE_REGEXP, function (letter, pos) {
-                                return (pos ? separator : '') + letter.toLowerCase();
-                            });
-                        }
-
-                        function indexOf(array, obj) {
-                            if (array.indexOf) return array.indexOf(obj);
-
-                            for (var i = 0; i < array.length; i++) {
-                                if (obj === array[i]) return i;
-                            }
-
-                            return -1;
-                        }
-
-                        function arrayRemove(array, value) {
-                            var index = indexOf(array, value);
-
-                            if (index >= 0) {
-                                array.splice(index, 1);
-                            }
-
-                            return value;
-                        }
-
-                        function includes(array, obj) {
-                            return indexOf(array, obj) != -1;
-                        }
-
-                        function triggerParent(warnToken, isValid, control) {
-                            var exFormCtrl = element.parent().controller('mForm');
-
-                            if (exFormCtrl) {
-                                exFormCtrl.$setWarning(warnToken, isValid, control);
-                            }
-                        }
-
-                        var currentCtrl = element.controller('mForm');
-
-                        currentCtrl.$setWarning = formCtrl.$setWarning = function (warnToken, isValid, control) {
-                            var queue = warnings[warnToken];
-
-                            if (isValid) {
-                                if (queue) {
-                                    arrayRemove(queue, control);
-
-                                    if (!queue.length) {
-                                        warningCount--;
-
-                                        if (!warningCount) {
-                                            toggleWarnCss(isValid);
-                                            formCtrl.$hasWarns = false;
-                                        }
-
-                                        warnings[warnToken] = false;
-                                        toggleWarnCss(true, warnToken);
-
-                                        triggerParent(warnToken, true, formCtrl);
-                                    }
-                                }
-                            } else {
-                                if (!warningCount) {
-                                    toggleWarnCss(isValid);
-                                }
-
-                                if (queue) {
-                                    if (includes(queue, control)) return;
-                                } else {
-                                    warnings[warnToken] = queue = [];
-                                    warningCount++;
-                                    toggleWarnCss(false, warnToken);
-
-                                    triggerParent(warnToken, false, formCtrl);
-                                }
-
-                                queue.push(control);
-
-                                formCtrl.$hasWarns = true;
-                            }
-                        };
-
-                        element.on('$destroy', function() {
-                            for (var warnToken in warnings) {
-                                triggerParent(warnToken, true, formCtrl);
-                            }
-                        });
-                    },
-                    post: function postLink(scope, element, attrs, formCtrl) {}
-                },
-                controller: [function () { }]
-            };
-        }])
+    })
     .directive('tgBindHtml', ['$parse', '$compile', '$sce',
         function ($parse, $compile, $sce) {
             'use strict';
@@ -369,101 +247,8 @@ angular.module('easyModel.directives', []).
             };
         }
     ])
-    .directive('mValidationMessage', [
-        function () {
-            'use strict';
-
-            return {
-                restrict: 'A',
-                require: '^form',
-                template: function () {
-                    return  '<div class="validation-message" data-ng-repeat="validation in validations" ng-class="{error: validation.isError, warning: !validation.isError}">' +
-                            '    <span class="pull-left" data-ng-if="iconClass">' +
-                            '        <i data-ng-show="text" data-ng-class="iconClass"></i>' +
-                            '    </span>' +
-                                '<span class="validation-message-text">{{validation.message}}</span>' +
-                            '</div>';
-                },
-                scope: true,
-                compile: function compile(element, attrs) {
-                    //var validation = $parse(expr)(this, locals);
-
-                    return function link(scope, element, attrs, formCtrl) {
-                        scope.validations = [];
-                        scope.iconClass = attrs.iconClass;
-
-                        if (!formCtrl) {
-                            formCtrl = element.parent().controller('form');
-                        }
-
-                        if (!formCtrl) {
-                            throw new Error('The form controller is not found. Place validation-message inside a form block.');
-                        }
-
-                        var pScope = scope.$parent,
-                            formName = formCtrl.$name,
-                            validators = attrs.mValidationMessage;
-
-                        if (!formName) {
-                            angular.forEach(pScope, function (value, key) {
-                                if (value === formCtrl) {
-                                    formName = key;
-                                }
-                            });
-                        }
-
-                        if (!pScope[formName]) {
-                            pScope = pScope.$$prevSibling;
-                        }
-
-                        if(validators) {
-                            validators = scope.$eval(validators);
-
-                            pScope.$watch('[' + formName + '.' + '$error,' + formName + '.' + '$warning]', proceedErrors.bind(scope, validators), true);
-                        }
-
-                        function proceedErrors(validators, formValidations) {
-                            var i, ln,
-                                validations = this.validations;
-
-                            validations.length = 0;
-
-                            for(i = 0, ln = validators.length; i < ln; i++) {
-
-                                formValidations.forEach(function(validationsCollection){
-                                    var validation,
-                                        validator,
-                                        ctrl;
-
-                                    if(validationsCollection.hasOwnProperty(validators[i])) {
-                                        validation = validationsCollection[validators[i]];
-
-                                        if(validation) {
-                                            ctrl = validation[0];
-
-                                            validator = ctrl.$validators[validators[i]];
-
-                                            if (validator.message) {
-                                                validations.push({
-                                                    message : validator.message,
-                                                    isError : validator.isError
-                                                });
-                                            }
-                                        }
-                                    }
-                                });
-                            }
-                        };
-                    }
-                }
-            };
-        }
-    ])
     .filter('tgTrustedHtml', ['$sce', function($sce){
         return function(text) {
             return $sce.trustAsHtml(text);
         };
     }]);
-
-
-
