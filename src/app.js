@@ -16,3 +16,4 @@ config(['$routeProvider', '$provide', function($routeProvider, $provide) {
 }]);
 
 angular.module('easyModel.models',[]);
+angular.module('easyModel.data', []);

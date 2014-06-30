@@ -1,7 +1,7 @@
 'use strict';
 
 
-angular.module('easyModel.data', []).factory('Model', ['$injector', function($injector) {
+angular.module('easyModel.data').factory('Model', ['$injector', 'Validation', 'Validator', function($injector, Validation, Validator) {
     
     function Model(entity, entityName, configs){
         var field,
@@ -12,8 +12,6 @@ angular.module('easyModel.data', []).factory('Model', ['$injector', function($in
 
         this.entityName = entityName;
         this.entity = entity;
-
-        this.validation = [];
 
         this.validationChangeListeners = [];
 
@@ -52,7 +50,7 @@ angular.module('easyModel.data', []).factory('Model', ['$injector', function($in
 //        }
 
         if(configs.validators) {
-            this.validators = configs.validators;
+            this.validators = initValidators(configs.validators);
         }
 
         if(configs.data) {
@@ -60,57 +58,77 @@ angular.module('easyModel.data', []).factory('Model', ['$injector', function($in
         }
     }
 
-    Model.prototype = {
-        getValidation : function(name, silent) {
-            var validators = this.validators[name],
-                validation = this.validation,
-                i,ln;
+    function initValidators(validatorsCfgs) {
+        var keyValidatorsCfgs,
+            keyValidators = [],
+            validators = {},
+            key,
+            i,ln;
 
-            validation.length = 0;
+        for(key in validatorsCfgs) {
+            keyValidatorsCfgs = validatorsCfgs[key];
 
-            if(validators) {
-                if(Array.isArray(validators)) {
-                    for(i = 0, ln = validators.length; i < ln; i++){
-                        validation.push(validators[i].validate(this.entity[name]));
-                    }
-                }else
-                if(typeof validators === 'object') {
-                    validation.push(validators.validate(this.entity[name]));
+            if(Array.isArray(keyValidatorsCfgs)) {
+                keyValidators.length = 0;
+
+                for(i = 0, ln = keyValidatorsCfgs.length; i < ln; i++) {
+                    keyValidators.push(new Validator(keyValidatorsCfgs[i]));
                 }
+            } else {
+                keyValidators.push(new Validator(keyValidatorsCfgs));
+            }
+
+            validators[key] = keyValidators;
+        }
+
+        return validators;
+    }
+
+    Model.prototype = {
+
+        // Returns the result of validations
+        getValidation : function(refresh, silent) {
+            var me = this,
+                ret = me.validation;
+
+
+            if(!ret) {
+                refresh = true;
+                me.validation = ret = new Validation(me);
+            }
+
+            if(refresh) {
+                ret.refresh();
             }
 
             if(!silent) {
-                this.validationChangeListeners.forEach(function(listener) {
+                me.validationChangeListeners.forEach(function(listener) {
+                    listener(ret.data);
+                });
+            }
+
+            return ret;
+        },
+        getValidationByField: function(fieldName, silent) {
+            var me = this,
+                ret = me.validation,
+                validation;
+
+            if(!ret) {
+                me.validation = ret = new Validation(me);
+            }
+
+            validation = ret.getValidationByField(fieldName);
+
+            if(!silent) {
+                me.validationChangeListeners.forEach(function(listener) {
                     listener(validation);
                 });
             }
 
             return validation;
-        },
-        validate: function() {
-            var fields = this.fields,
-                entity = this.entity,
-                field,
-                i,ln;
-
-            for (i = 0, ln = fields.length; i < ln; ++i) {
-                field = fields[i];
-
-                if(field.reference) {
-                    if(field.unique) {
-                        entity[field.name]._record.validate();
-                    }else
-                    if(field.isManyToOne){
-                        entity[field.name].forEach(function(item){
-                            item._record.validate();
-                        });
-                    }
-                }else{
-                    this.getValidation(field.name);
-                }
-            }
         }
-    }
+    };
 
 
     return {

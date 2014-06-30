@@ -9,7 +9,11 @@
     <script src="lib/angular/angular-route.js"></script>
     <script src="app.js"></script>
 
+
+    <script src="datapackage/Validator.js"></script>
+    <script src="datapackage/Validation.js"></script>
     <script src="datapackage/Model.js"></script>
+
     <script src="directives/mValidate.js"></script>
     <script src="directives/mForm.js"></script>
     <script src="directives/mMessages.js"></script>
@@ -40,6 +44,8 @@
         <div data-m-messages="['streetrequired']"></div>
 
         <button data-ng-click="onMakeStreetRequired()">Empty the street</button>
+
+        <button data-ng-click="onGetLibraryValidation()">Show in console library validation</button>
 
   </div>
 </body>

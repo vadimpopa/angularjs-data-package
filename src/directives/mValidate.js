@@ -115,7 +115,7 @@ angular.module('easyModel.directives', []).
                 var record = this.getRecord();
 
                 if (record) {
-                    return record.getValidation(this.propertyPath,true);
+                    return record.getValidationByField(this.propertyPath,true);
                 }
 
                 return null;

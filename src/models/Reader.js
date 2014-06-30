@@ -15,8 +15,6 @@ angular.module('easyModel.models').
                 name: [{
                     type: "required",
                     message: "Name is required",
-                    isValid: true,
-                    isError: true,
                     validate: function(value) {
                         this.isValid = true;
 
@@ -29,8 +27,6 @@ angular.module('easyModel.models').
                 },{
                     type: "optional",
                     message: "This field is optional",
-                    isValid: true,
-                    isError: true,
                     validate: function() {
                         this.isValid = false;
                         return this;
@@ -38,7 +34,6 @@ angular.module('easyModel.models').
                 },{
                     type: "optional1",
                     message: "This field is optional1",
-                    isValid: true,
                     isWarning: true,
                     validate: function() {
                         this.isValid = false;
@@ -48,8 +43,6 @@ angular.module('easyModel.models').
                 address: {
                     type: "streetrequired",
                     message: "Street is required",
-                    isValid: true,
-                    isError: true,
                     validate: function(value) {
                         this.isValid = true;
 
