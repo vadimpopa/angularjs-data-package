@@ -60,7 +60,7 @@ angular.module('easyModel.data').factory('Model', ['$injector', 'Validation', 'V
 
     function initValidators(validatorsCfgs) {
         var keyValidatorsCfgs,
-            keyValidators = [],
+            keyValidators,
             validators = {},
             key,
             i,ln;
@@ -68,9 +68,9 @@ angular.module('easyModel.data').factory('Model', ['$injector', 'Validation', 'V
         for(key in validatorsCfgs) {
             keyValidatorsCfgs = validatorsCfgs[key];
 
-            if(Array.isArray(keyValidatorsCfgs)) {
-                keyValidators.length = 0;
+            keyValidators = [];
 
+            if(Array.isArray(keyValidatorsCfgs)) {
                 for(i = 0, ln = keyValidatorsCfgs.length; i < ln; i++) {
                     keyValidators.push(new Validator(keyValidatorsCfgs[i]));
                 }

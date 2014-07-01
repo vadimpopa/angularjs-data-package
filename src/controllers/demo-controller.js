@@ -59,4 +59,8 @@ angular.module('easyModel.demoController', []).
             console.log($scope.models.library._record.getValidation());
         }
 
+        $scope.onGetBookValidation = function(){
+            console.log($scope.models.book._record.getValidation(true));
+        }
+
   }]);
