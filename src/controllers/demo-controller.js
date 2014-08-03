@@ -1,7 +1,5 @@
 'use strict';
 
-/* Controllers */
-
 angular.module('easyModel.demoController', []).
   controller('DemoController', ['$document', '$scope', 'modelLibrary', 'modelReader', function($document, $scope, Library, Reader) {
     $scope.models = {
@@ -62,5 +60,4 @@ angular.module('easyModel.demoController', []).
         $scope.onGetBookValidation = function(){
             console.log($scope.models.book._record.getValidation(true));
         }
-
   }]);

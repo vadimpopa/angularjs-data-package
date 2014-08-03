@@ -20,6 +20,10 @@ angular.module('easyModel.data').factory('Model', ['$injector', 'Validation', 'V
             this.fields = fields;
         }
 
+        if(configs.data) {
+            angular.copy(configs.data,entity);
+        }
+
         for(i = 0, ln = fields.length; i < ln; i++) {
             field = fields[i];
 
@@ -44,10 +48,6 @@ angular.module('easyModel.data').factory('Model', ['$injector', 'Validation', 'V
                 }
             }
         }
-
-//        if(configs.data) {
-//            angular.copy(configs.data,entity);
-//        }
 
         if(configs.validators) {
             this.validators = initValidators(configs.validators);
@@ -109,6 +109,7 @@ angular.module('easyModel.data').factory('Model', ['$injector', 'Validation', 'V
 
             return ret;
         },
+
         getValidationByField: function(fieldName, silent) {
             var me = this,
                 ret = me.validation,
@@ -127,6 +128,14 @@ angular.module('easyModel.data').factory('Model', ['$injector', 'Validation', 'V
             }
 
             return validation;
+        },
+
+        commit: function() {
+
+        },
+
+        save: function() {
+
         }
     };
 
