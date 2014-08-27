@@ -1,7 +1,7 @@
 /**
  * Created by popavadim on 6/30/14.
  */
-angular.module('easyModel.data').factory('Validation', [function() {
+angular.module('easyModel.validators').factory('Validation', [function() {
 
     'use strict';
 

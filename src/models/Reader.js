@@ -1,19 +1,20 @@
 angular.module('easyModel.models').
   factory('modelReader', ['Model',function(Model) {
+        var fields = [
+            {name: "id"},
+            {name: "name"},
+            {name: "age"},
+            {name: "phone"},
+            {name: "address", reference: "Address", unique: true}
+        ];
 
     function Reader(data){
         return Model.create("Reader",{
             data: data,
-            fields: [
-                {name: "id"},
-                {name: "name"},
-                {name: "age"},
-                {name: "phone"},
-                {name: "address", reference: "Address", unique: true}
-            ],
+            fields: fields,
             validators: {
                 name: [{
-                    type: "required",
+                    type: "Required",
                     message: "Name is required",
                     validate: function(value) {
                         this.isValid = true;

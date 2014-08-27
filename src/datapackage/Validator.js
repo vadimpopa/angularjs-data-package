@@ -1,22 +1,33 @@
 /**
  * Created by popavadim on 6/30/14.
  */
-angular.module('easyModel.data', []).factory('Validator', [function() {
+angular.module('easyModel.validators').factory('Validator', ['$injector', function($injector) {
 
     'use strict';
 
-    function Validator(configs){
-        var me = this;
+    return {
+      create: function (configs) {
+        var constructor;
 
-        this.isValid = true;
-        this.validation = [];
-        this.isError = configs.isError === true;
+        function Validator(configs){
+          this.isValid = true;
+          this.validation = [];
+          this.isError = configs.isError === true;
+        }
 
-        angular.extend(me, configs);
+        Validator.prototype = {
+          validate: configs.validate
+        };
 
-    }
+        if(configs.type && $injector.has('validator' + configs.type)) {
+          constructor = $injector.get('validator' + configs.type);
 
-    return Validator;
+          return new constructor(configs);
+        }
+
+        return Validator
+      }
+    };
 
 }]);
 

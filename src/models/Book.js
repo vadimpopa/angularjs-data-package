@@ -1,32 +1,32 @@
 angular.module('easyModel.models').
-    factory('modelBook', ['Model',function(Model) {
-        function Book(data){
-            return Model.create("Book",{
-                data: data,
-                fields: [
-                    {name: "name"},
-                    {name: "booksCount"},
-                    {name: "address"},
-                    {name: "readers"}
-                ],
-                validators: {
-                    name: [{
-                        type: "required",
-                        message: "This field is required",
-                        isValid: true,
-                        isError: true,
-                        validate: function(value) {
-                            this.isValid = true;
+    factory('modelBook', ['Model', function (Model) {
 
-                            if (!value) {
-                                this.isValid = false;
-                            }
+      var validators = {
+        name: [
+          {
+            type: "Required",
+            message: "This field is required",
+            isValid: true,
+            isError: true,
+            validate: function (value) {
+              this.isValid = true;
 
-                            return this;
-                        }
-                    }]
-                }
-            });
-        }
-        return( Book );
+              if (!value) {
+                this.isValid = false;
+              }
+
+              return this;
+            }
+          }
+        ]
+      };
+
+      function Book(data) {
+        return Model.create("Book", {
+          data: data,
+          validators: validators
+        });
+      }
+
+      return( Book );
     }]);

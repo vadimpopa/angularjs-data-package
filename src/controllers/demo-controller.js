@@ -1,7 +1,44 @@
 'use strict';
 
+/**
+ * @licence ActiveRecord for AngularJS
+ * (c) 2013-2014 Bob Fanger, Jeremy Ashkenas, DocumentCloud
+ * License: MIT
+ */
+
 angular.module('easyModel.demoController', []).
-  controller('DemoController', ['$document', '$scope', 'modelLibrary', 'modelReader', function($document, $scope, Library, Reader) {
+    factory('Task', function (ActiveRecord) {
+
+        return ActiveRecord.extend({
+
+            // Rest API configuration for retrieving and saving tasks.
+            $urlRoot: '/api/tasks',
+
+            // Optional defaults
+            $defaults: {
+                title: 'Untitled',
+                estimate: ''
+            },
+
+            // optional named constructor (Shows "Task" as the type in a console.log)
+            $constructor: function Task(properties) {
+                this.$initialize.apply(this, arguments)
+            },
+
+            // An example method for task instances
+            /**
+             * Return the estimate in hours
+             * @return {Number}
+             */
+            estimateInHours: function () {
+                var value = parseFloat(this.estimate);
+                if (isNaN(value)) {
+                    return 0.0;
+                }
+                return value / 3600;
+            }
+        })}).
+  controller('DemoController', ['$document', '$scope', 'modelLibrary', 'modelReader','Task', function($document, $scope, Library, Reader, Task) {
     $scope.models = {
       book: null
     }

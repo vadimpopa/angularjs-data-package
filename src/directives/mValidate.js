@@ -133,7 +133,7 @@ angular.module('easyModel.directives', []).
         function getRecordFromEntityPath(info) {
             return function () {
                 try {
-                    return info.scope.$eval(info.entityPath)['_record'];
+                    return info.scope.$eval(info.entityPath)['$entity'];
                 }
                 catch (_) {
                     return undefined;

@@ -1,153 +1,162 @@
 'use strict';
 
 
-angular.module('easyModel.data').factory('Model', ['$injector', 'Validation', 'Validator', function($injector, Validation, Validator) {
-    
-    function Model(entity, entityName, configs){
-        var field,
-            data = configs.data,
-            entityConstructor,
-            fields,
-            i,ln;
+angular.module('easyModel.data').factory('Model', ['$injector', 'Validation', 'Validator', function ($injector, Validation, Validator) {
 
-        this.entityName = entityName;
-        this.entity = entity;
+  function Model(configs) {
+    var self = this,
+        data = configs.data,
+        fields = configs.fields || [],
+        entityConstructor,
+        entity = {},
+        field,
+        i, ln;
 
-        this.validationChangeListeners = [];
+    angular.extend(self,data);
 
-        if(configs.fields) {
-            fields = configs.fields;
-            this.fields = fields;
+    entity.phantom = true;
+    entity.validationChangeListeners = [];
+
+    for (i = 0, ln = fields.length; i < ln; i++) {
+      field = fields[i];
+
+      if (field.reference) {
+        if ($injector.has('model' + field.reference)) {
+          entityConstructor = $injector.get('model' + field.reference);
+
+          if (field.unique) {
+            self[field.name] = new entityConstructor(data[field.name]);
+          } else if (field.isManyToOne) {
+            self[field.name] = [];
+
+            data[field.name].forEach(function (dataItem) {
+              this.push(new entityConstructor(dataItem));
+            }.bind(self[field.name]))
+          }
         }
-
-        if(configs.data) {
-            angular.copy(configs.data,entity);
-        }
-
-        for(i = 0, ln = fields.length; i < ln; i++) {
-            field = fields[i];
-
-            if(data[field.name]){
-                if(field.reference) {
-                    if($injector.has('model' + field.reference)) {
-                        entityConstructor = $injector.get('model' + field.reference);
-
-                        if(field.unique) {
-                            entity[field.name] = new entityConstructor(data[field.name]);
-                        }else
-                        if(field.isManyToOne) {
-                            entity[field.name] = [];
-
-                            data[field.name].forEach(function(dataItem){
-                                this.push(new entityConstructor(dataItem));
-                            }.bind(entity[field.name]))
-                        }
-                    }
-                }else{
-                    entity[field.name] = data[field.name];
-                }
-            }
-        }
-
-        if(configs.validators) {
-            this.validators = initValidators(configs.validators);
-        }
-
-        if(configs.data) {
-            this.data = configs.data;
-        }
+      }
     }
 
-    function initValidators(validatorsCfgs) {
-        var keyValidatorsCfgs,
-            keyValidators,
-            validators = {},
-            key,
-            i,ln;
-
-        for(key in validatorsCfgs) {
-            keyValidatorsCfgs = validatorsCfgs[key];
-
-            keyValidators = [];
-
-            if(Array.isArray(keyValidatorsCfgs)) {
-                for(i = 0, ln = keyValidatorsCfgs.length; i < ln; i++) {
-                    keyValidators.push(new Validator(keyValidatorsCfgs[i]));
-                }
-            } else {
-                keyValidators.push(new Validator(keyValidatorsCfgs));
-            }
-
-            validators[key] = keyValidators;
-        }
-
-        return validators;
+    if (configs.validators) {
+      entity.validators = initValidators(configs.validators);
     }
 
-    Model.prototype = {
+    self.$entity = entity;
+  }
 
-        // Returns the result of validations
-        getValidation : function(refresh, silent) {
-            var me = this,
-                ret = me.validation;
+  function initValidators(configs) {
+    var validatorConfigs,
+        validators = {},
+        temp,
+        key,
+        i, ln;
 
+    for (key in configs) {
+      validatorConfigs = configs[key];
 
-            if(!ret) {
-                refresh = true;
-                me.validation = ret = new Validation(me);
-            }
+      temp = [];
 
-            if(refresh) {
-                ret.refresh();
-            }
-
-            if(!silent) {
-                me.validationChangeListeners.forEach(function(listener) {
-                    listener(ret.data);
-                });
-            }
-
-            return ret;
-        },
-
-        getValidationByField: function(fieldName, silent) {
-            var me = this,
-                ret = me.validation,
-                validation;
-
-            if(!ret) {
-                me.validation = ret = new Validation(me);
-            }
-
-            validation = ret.getValidationByField(fieldName);
-
-            if(!silent) {
-                me.validationChangeListeners.forEach(function(listener) {
-                    listener(validation);
-                });
-            }
-
-            return validation;
-        },
-
-        commit: function() {
-
-        },
-
-        save: function() {
-
+      if (Array.isArray(validatorConfigs)) {
+        for (i = 0, ln = validatorConfigs.length; i < ln; i++) {
+          temp.push(Validator.create(validatorConfigs[i]));
         }
-    };
+      } else {
+        temp.push(Validator.create(validatorConfigs));
+      }
 
-
-    return {
-        create: function(entityName, configs) {
-            var constructor = {};
-
-            constructor._record = new Model(constructor, entityName, configs);
-
-            return constructor;
-        }
+      validators[key] = temp;
     }
 
-  }]);
+    return validators;
+  }
+
+  Model.prototype = {
+
+    // Returns the result of validations
+    getValidation: function (refresh, silent) {
+      var me = this,
+          ret = me.validation;
+
+
+      if (!ret) {
+        refresh = true;
+        me.validation = ret = new Validation(me);
+      }
+
+      if (refresh) {
+        ret.refresh();
+      }
+
+      if (!silent) {
+        me.validationChangeListeners.forEach(function (listener) {
+          listener(ret.data);
+        });
+      }
+
+      return ret;
+    },
+
+    getValidationByField: function (fieldName, silent) {
+      var me = this,
+          ret = me.validation,
+          validation;
+
+      if (!ret) {
+        me.validation = ret = new Validation(me);
+      }
+
+      validation = ret.getValidationByField(fieldName);
+
+      if (!silent) {
+        me.validationChangeListeners.forEach(function (listener) {
+          listener(validation);
+        });
+      }
+
+      return validation;
+    },
+
+    commit: function () {
+
+    },
+
+    save: function () {
+
+    }
+  };
+
+
+  return {
+    create: function (entityName, configs) {
+      function constructor() {
+        Model.call(this, configs);
+      }
+
+      constructor.prototype = Object.create(Model.prototype, {
+        $entityName: {
+          value: entityName,
+          enumerable: false,
+          configurable: false,
+          writable: false
+        },
+        $constructor: {
+          value: constructor,
+          enumerable: false,
+          configurable: false,
+          writable: false
+        },
+        $defaultConfigs: {
+          value: {
+            validators: configs.validators
+          },
+          enumerable: false,
+          configurable: false,
+          writable: true
+        }
+      });
+
+      return new constructor();
+    }
+  }
+
+}]);
